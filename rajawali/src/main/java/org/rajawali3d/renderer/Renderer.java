@@ -56,6 +56,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -69,7 +70,6 @@ public abstract class Renderer implements ISurfaceRenderer {
 
     protected static boolean mFogEnabled; // Is camera fog enabled?
     protected static int sMaxLights = 1; // How many lights max?
-    public static boolean supportsUIntBuffers = false;
 
     protected Context mContext; // Context the renderer is running in
 
@@ -124,6 +124,11 @@ public abstract class Renderer implements ISurfaceRenderer {
 
     private long mRenderStartTime;
 
+    /**
+     * Keep track of IDs in {@link Renderer#mLoaderThreads}
+     */
+    private AtomicInteger mLastLoaderId = new AtomicInteger();
+
     private final boolean mHaveRegisteredForResources;
 
     public static int getMaxLights() {
@@ -155,8 +160,8 @@ public abstract class Renderer implements ISurfaceRenderer {
     }
 
     public Renderer(Context context, boolean registerForResources) {
-        RajLog.i("Rajawali | Bombshell | v1.1 Development ");
-        RajLog.i("THIS IS A DEV BRANCH CONTAINING SIGNIFICANT CHANGES. PLEASE REFER TO CHANGELOG.md FOR MORE INFORMATION.");
+        RajLog.i("Rajawali | Bombshell | v1.1.777 Release ");
+        RajLog.i("This is a stable release.");
         mHaveRegisteredForResources = registerForResources;
         mContext = context;
         RawShaderLoader.mContext = new WeakReference<>(context);
@@ -308,8 +313,6 @@ public abstract class Renderer implements ISurfaceRenderer {
             }
         }
         RajLog.d(String.format(Locale.US, "Derived GL ES Version: %d.%d", mGLES_Major_Version, mGLES_Minor_Version));
-
-        supportsUIntBuffers = GLES20.glGetString(GLES20.GL_EXTENSIONS).contains("GL_OES_element_index_uint");
 
         if (!mHaveRegisteredForResources) {
             mTextureManager.registerRenderer(this);
@@ -552,7 +555,7 @@ public abstract class Renderer implements ISurfaceRenderer {
         loader.setTag(tag);
 
         try {
-            final int id = mLoaderThreads.size();
+            final int id = mLastLoaderId.getAndIncrement();
             final ModelRunnable runnable = new ModelRunnable(loader, id);
 
             mLoaderThreads.put(id, runnable);
@@ -643,7 +646,9 @@ public abstract class Renderer implements ISurfaceRenderer {
         mCurrentScene = nextScene;
         mCurrentScene.markLightingDirty(); // Make sure the lighting is updated for the new scene
         mCurrentScene.resetGLState(); // Ensure that the GL state is what this scene expects
-        mCurrentScene.getCamera().setProjectionMatrix(mOverrideViewportWidth, mOverrideViewportHeight);
+        final int wViewport = mOverrideViewportWidth > -1 ? mOverrideViewportWidth : mDefaultViewportWidth;
+        final int hViewport = mOverrideViewportHeight > -1 ? mOverrideViewportHeight : mDefaultViewportHeight;
+        mCurrentScene.getCamera().setProjectionMatrix(wViewport, hViewport);
     }
 
     /**

@@ -4,19 +4,30 @@
 [![AndroidLibs](https://img.shields.io/badge/AndroidLibs-Rajawali-brightgreen.svg?style=flat)](https://www.android-libs.com/lib/rajawali?utm_source=github-badge&utm_medium=github-badge&utm_campaign=github-badge)
 [![License](https://img.shields.io/badge/license-Apache%202.0%20License-blue.svg)](https://github.com/Rajawali/Rajawali/blob/master/LICENSE.txt)
 [![Maven Central](https://img.shields.io/maven-central/v/org.rajawali3d/rajawali.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22rajawali%22)
+[![Trending](http://starveller.sigsev.io/api/repos/Rajawali/Rajawali/badge)](http://starveller.sigsev.io/Rajawali/Rajawali)
 
 ### Build Status
-**Master Branch Status**  [![master](https://travis-ci.org/Rajawali/Rajawali.svg?branch=master)](https://travis-ci.org/Rajawali/Rajawali)
+**Master Branch Status**  
+[![master](https://travis-ci.org/Rajawali/Rajawali.svg?branch=master)](https://travis-ci.org/Rajawali/Rajawali)
+[![codecov](https://codecov.io/gh/Rajawali/Rajawali/branch/master/graph/badge.svg)](https://codecov.io/gh/Rajawali/Rajawali)
 
-**Development Branch Status**  [![development](https://travis-ci.org/Rajawali/Rajawali.svg?branch=development)](https://travis-ci.org/Rajawali/Rajawali)
+**Development Branch Status**  
+[![development](https://travis-ci.org/Rajawali/Rajawali.svg?branch=v2.0-development)](https://travis-ci.org/Rajawali/Rajawali)
+[![codecov](https://codecov.io/gh/Rajawali/Rajawali/branch/v2.0-development/graph/badge.svg)](https://codecov.io/gh/Rajawali/Rajawali)
 
 ### News
 
-**2/23/2016**
-Following the `1.0.325` release, I have also created a `1.1.x` release. This release is functionally identical though it represents an API change to deal with the class names being smurf like. Additionally, some class locations were altered. For users of the `master` branch prior to release, support will continue, though all bugfixes will occur in `1.1.x` releases unless we receive PRs for hotfixes.
+**11/16/2016**
+`Bombshell 1.1.777` has been released. It fixes a small number of bugs and adds a Scan Line post processing effect (thanks @contriteobserver). 
 
-**2/23/2016**
-Rajawali recently made its first major release `1.0.325`. We had already deprecated support for the `v0.9` tag, but with this release we will not make any attempts at supporting usage of `v0.9`. Efforts will be made to bring all documentation up to date and support requests for the `1.0.x` builds will be handled on a best effort basis. Issues against `v0.9` will be closed immediately. Please do not take it personally, its simply a resource issue.
+**11/15/2016**
+One of the developers (@jwoolston) is now offering consulting/development services, particularly related to Rajawali. Details will be handled on a case by case basis but everything from paid assistance debugging to development of specific modifications or full apps using Rajawali are possible. To be clear, support on the Issues page is always free, however it is handled on a lower priority basis. Any development which happens under a paid contract is subject to whatever copyright terms the client specifies to the extent they are compatible with the licensing terms of Rajawali (see [LICENSE.txt](./LICENSE.txt))
+
+**9/7/2016**
+The official release of `Bombshell 1.1.610` is out. We will continue to support this release moving forward how ever bug fixes will be minimal. The decision was made that the design of the core engine was inhibiting correcting some of the larger issues. To this end, we have begun development of a `2.0` version - see issue [1755](https://github.com/Rajawali/Rajawali/issues/1755) for details. Development is happening in the `v2.0-development` branch [here](https://github.com/Rajawali/Rajawali/tree/v2.0-development)
+
+**8/29/2016**
+An initial effort for adding unit testing to Rajawali has been made. This initial focus has been on the core math classes and will ideally expand as bug fixes progress. Pull requests for unit tests are welcome and any "bug fix" PRs which include unit tests  or issues which include unit tests to demonstrate a failure will be given the highest priority. 
 
 ### General
 
@@ -76,7 +87,7 @@ Alternatively, if you checkout Rajawali via GIT, you can run `gradle assembleRel
 4. [Optimization](https://github.com/MasDennis/Rajawali/wiki/Tutorial-04-Optimization)  
 5. [Skybox] (https://github.com/MasDennis/Rajawali/wiki/Tutorial-05-Skybox)  
 6. [Screenshots] (https://github.com/MasDennis/Rajawali/wiki/Tutorial-06-Screenshots)  
-7. [Plugins] (https://github.com/MasDennis/Rajawali/wiki/Tutorial-05-Plugins)  
+7. [Plugins] (https://github.com/MasDennis/Rajawali/wiki/Tutorial-07-Plugins)  
 8. [User Interface Elements] (https://github.com/MasDennis/Rajawali/wiki/Tutorial-08-Adding-User-Interface-Elements)  
 9. [Creating a Custom Material GLSL Shader](https://github.com/MasDennis/Rajawali/wiki/Tutorial-09-Creating-a-Custom-Material---GLSL-Shader)  
 10. [2D Renderer](https://github.com/MasDennis/Rajawali/wiki/Tutorial-10-2D-Renderer)  

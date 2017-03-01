@@ -15,6 +15,7 @@ package org.rajawali3d.materials;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import org.rajawali3d.BufferInfo;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.lights.ALight;
@@ -491,10 +492,28 @@ public class Material {
     }
 
     /**
+     * Called prior to {@link VertexShader#initialize()} being called when creating auto-generated materials.
+     *
+     * @param vertexShader The {@link VertexShader}.
+     */
+    protected void onPreVertexShaderInitialize(@NonNull VertexShader vertexShader) {
+
+    }
+
+    /**
+     * Called prior to {@link FragmentShader#initialize()} being called when creating auto-generated materials.
+     *
+     * @param fragmentShader The {@link FragmentShader}.
+     */
+    protected void onPreFragmentShaderInitialize(@NonNull FragmentShader fragmentShader) {
+
+    }
+
+    /**
      * Takes all material parameters and creates the vertex shader and fragment shader and then compiles the program.
      * This method should only be called on initialization or when parameters have changed.
      */
-    private void createShaders() {
+    protected void createShaders() {
         if (!mIsDirty)
             return;
         if (mCustomVertexShader == null && mCustomFragmentShader == null) {
@@ -570,10 +589,12 @@ public class Material {
             mVertexShader.hasCubeMaps(hasCubeMaps);
             mVertexShader.hasSkyTexture(skyTextures != null && skyTextures.size() > 0);
             mVertexShader.useVertexColors(mUseVertexColors);
+            onPreVertexShaderInitialize(mVertexShader);
             mVertexShader.initialize();
             mFragmentShader = new FragmentShader();
             mFragmentShader.enableTime(mTimeEnabled);
             mFragmentShader.hasCubeMaps(hasCubeMaps);
+            onPreFragmentShaderInitialize(mFragmentShader);
             mFragmentShader.initialize();
 
             if (diffuseTextures != null && diffuseTextures.size() > 0) {
@@ -1053,7 +1074,12 @@ public class Material {
         mModelMatrix = modelMatrix;//.getFloatValues();
         mVertexShader.setModelMatrix(mModelMatrix);
 
-        mNormalMatrix.setAll(modelMatrix).setToNormalMatrix();
+        mNormalMatrix.setAll(modelMatrix);
+        try {
+            mNormalMatrix.setToNormalMatrix();
+        } catch (IllegalStateException exception) {
+            RajLog.d("modelMatrix is degenerate (zero scale)...");
+        }
         float[] matrix = mNormalMatrix.getFloatValues();
 
         mNormalFloats[0] = matrix[0];

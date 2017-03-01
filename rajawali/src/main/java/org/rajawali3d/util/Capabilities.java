@@ -12,9 +12,12 @@
  */
 package org.rajawali3d.util;
 
+import android.annotation.TargetApi;
 import android.opengl.EGLExt;
 import android.opengl.GLES20;
 import android.os.Build;
+import android.os.Build.VERSION_CODES;
+import android.support.annotation.NonNull;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -55,10 +58,16 @@ public class Capabilities {
 
     private int[] mParam;
 
+    private String mVendor = "";
+    private String mRenderer = "";
+    private String mVersion = "";
+    private String[] mExtensions = new String[] {};
+
     private Capabilities() {
         initialize();
     }
 
+    @NonNull
     public static Capabilities getInstance() {
         if (instance == null) {
             instance = new Capabilities();
@@ -85,44 +94,52 @@ public class Capabilities {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // The API for GLES3 might exist, we need to check
             // RajLog.d("Attempting to get an OpenGL ES 3 config.");
-
-            // Find out how many EGLConfigs exist
-            final int[] num_config = new int[1];
-            egl.eglGetConfigs(display, null, 0, num_config);
-
-            // Allocate and retrieve the EGLConfigs/handles
-            int configCount = num_config[0];
-            final EGLConfig[] configs = new EGLConfig[configCount];
-            egl.eglGetConfigs(display, configs, configCount, num_config);
-
-            // Check for a config that supports GLES 3 (using a manual search rather than
-            // eglChooseConfig(), which may simply ignore the new ES3 bit on older versions)
-            final int value[] = new int[1];
-            for (EGLConfig config : configs) {
-                egl.eglGetConfigAttrib(display, config, EGL10.EGL_RENDERABLE_TYPE, value);
-                if ((value[0] & EGLExt.EGL_OPENGL_ES3_BIT_KHR) != 0) {
-                    // TODO is this secondary check for color sizes useful?
-                    // We have at least one GLES 3 config, can now use eglChooseConfig()
-                    // to see if one of them has at least 4 bits per color
-                    final int[] configAttribs = {
-                            EGL10.EGL_RED_SIZE, 4, EGL10.EGL_GREEN_SIZE, 4, EGL10.EGL_BLUE_SIZE, 4,
-                            EGL10.EGL_RENDERABLE_TYPE, EGLExt.EGL_OPENGL_ES3_BIT_KHR, EGL10.EGL_NONE};
-                    value[0] = 0;
-                    egl.eglChooseConfig(display, configAttribs, configs, 1, value);
-                    mGLESMajorVersion = value[0] > 0 ? 3 : 2;
-                    break;
-                }
-            }
+            checkGLVersionIs3(egl, display);
         }
         egl.eglTerminate(display);
         // RajLog.d("Determined GLES Major version to be: " + mGLESMajorVersion);
         sGLChecked = true;
     }
 
+    @TargetApi(VERSION_CODES.JELLY_BEAN_MR2)
+    private static void checkGLVersionIs3(@NonNull EGL10 egl, EGLDisplay display) {
+        // Find out how many EGLConfigs exist
+        final int[] num_config = new int[1];
+        egl.eglGetConfigs(display, null, 0, num_config);
+
+        // Allocate and retrieve the EGLConfigs/handles
+        int configCount = num_config[0];
+        final EGLConfig[] configs = new EGLConfig[configCount];
+        egl.eglGetConfigs(display, configs, configCount, num_config);
+
+        // Check for a config that supports GLES 3 (using a manual search rather than
+        // eglChooseConfig(), which may simply ignore the new ES3 bit on older versions)
+        final int value[] = new int[1];
+        for (EGLConfig config : configs) {
+            egl.eglGetConfigAttrib(display, config, EGL10.EGL_RENDERABLE_TYPE, value);
+            if ((value[0] & EGLExt.EGL_OPENGL_ES3_BIT_KHR) != 0) {
+                // TODO is this secondary check for color sizes useful?
+                // We have at least one GLES 3 config, can now use eglChooseConfig()
+                // to see if one of them has at least 4 bits per color
+                final int[] configAttribs = {
+                        EGL10.EGL_RED_SIZE, 4, EGL10.EGL_GREEN_SIZE, 4, EGL10.EGL_BLUE_SIZE, 4,
+                        EGL10.EGL_RENDERABLE_TYPE, EGLExt.EGL_OPENGL_ES3_BIT_KHR, EGL10.EGL_NONE};
+                value[0] = 0;
+                egl.eglChooseConfig(display, configAttribs, configs, 1, value);
+                mGLESMajorVersion = value[0] > 0 ? 3 : 2;
+                break;
+            }
+        }
+    }
+
     private void initialize() {
         RajLog.d("Fetching device capabilities.");
 
         mParam = new int[1];
+
+        mVendor = GLES20.glGetString(GLES20.GL_VENDOR);
+        mRenderer = GLES20.glGetString(GLES20.GL_RENDERER);
+        mVersion = GLES20.glGetString(GLES20.GL_VERSION);
 
         mMaxCombinedTextureImageUnits = getInt(GLES20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
         mMaxCubeMapTextureSize = getInt(GLES20.GL_MAX_CUBE_MAP_TEXTURE_SIZE);
@@ -140,6 +157,9 @@ public class Capabilities {
         mMaxAliasedLineWidth = getInt(GLES20.GL_ALIASED_LINE_WIDTH_RANGE, 2, 1);
         mMinAliasedPointSize = getInt(GLES20.GL_ALIASED_POINT_SIZE_RANGE, 2, 0);
         mMaxAliasedPointSize = getInt(GLES20.GL_ALIASED_POINT_SIZE_RANGE, 2, 1);
+
+        String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);
+        mExtensions = extensions.split(" ");
     }
 
     private int getInt(int pname) {
@@ -181,6 +201,46 @@ public class Capabilities {
     public static int getGLESMajorVersion() {
         if (!sGLChecked) checkGLVersion();
         return mGLESMajorVersion;
+    }
+
+    @NonNull
+    public String getVendor() {
+        return mVendor;
+    }
+
+    @NonNull
+    public String getRenderer() {
+        return mRenderer;
+    }
+
+    @NonNull
+    public String getVersion() {
+        return mVersion;
+    }
+
+    /**
+     * Fetch the list of extension strings this device supports.
+     *
+     * @return
+     */
+    @NonNull
+    public String[] getExtensions() {
+        return mExtensions;
+    }
+
+    /**
+     * Checks if a particular extension is supported by this device.
+     *
+     * @param extension {@link String} Non-null string of the extension to check for. This is case sensitive.
+     * @throws {@link UnsupportedCapabilityException} if the extension is not available.
+     */
+    public void verifyExtension(@NonNull String extension) throws UnsupportedCapabilityException {
+        for (String ext : mExtensions) {
+            if (extension.equals(ext)) {
+                return;
+            }
+        }
+        throw new UnsupportedCapabilityException("Extension (" + extension + ") is not supported!");
     }
 
     /**
@@ -331,6 +391,7 @@ public class Capabilities {
         return mMaxAliasedPointSize;
     }
 
+    @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append("-=-=-=- OpenGL Capabilities -=-=-=-\n");
@@ -352,5 +413,49 @@ public class Capabilities {
         sb.append("Max Aliased Point Width            : ").append(mMaxAliasedPointSize).append("\n");
         sb.append("-=-=-=- /OpenGL Capabilities -=-=-=-\n");
         return sb.toString();
+    }
+
+    public static class UnsupportedCapabilityException extends Exception {
+
+        /**
+         * Constructs a new {@code UnsupportedCapabilityException} that includes the current stack trace.
+         */
+        public UnsupportedCapabilityException() {
+        }
+
+        /**
+         * Constructs a new {@code UnsupportedCapabilityException} with the current stack trace and the
+         * specified detail message.
+         *
+         * @param detailMessage
+         *            the detail message for this exception.
+         */
+        public UnsupportedCapabilityException(String detailMessage) {
+            super(detailMessage);
+        }
+
+        /**
+         * Constructs a new {@code UnsupportedCapabilityException} with the current stack trace, the
+         * specified detail message and the specified cause.
+         *
+         * @param detailMessage
+         *            the detail message for this exception.
+         * @param throwable
+         *            the cause of this exception.
+         */
+        public UnsupportedCapabilityException(String detailMessage, Throwable throwable) {
+            super(detailMessage, throwable);
+        }
+
+        /**
+         * Constructs a new {@code UnsupportedCapabilityException} with the current stack trace and the
+         * specified cause.
+         *
+         * @param throwable
+         *            the cause of this exception.
+         */
+        public UnsupportedCapabilityException(Throwable throwable) {
+            super(throwable);
+        }
     }
 }
