@@ -262,6 +262,7 @@ public class Scene {
 		final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Adding camera: " + camera);
                 mCameras.add(camera);
                 if (mSceneGraph != null) {
                     //mSceneGraph.addObject(camera); //TODO: Uncomment
@@ -281,6 +282,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Adding camera collection: " + cameras);
                 mCameras.addAll(cameras);
                 if (mSceneGraph != null) {
                     //mSceneGraph.addObject(camera); //TODO: Uncomment
@@ -302,6 +304,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Removing camera: " + camera);
                 mCameras.remove(camera);
                 if (mSceneGraph != null) {
                     //mSceneGraph.removeObject(camera); //TODO: Uncomment
@@ -320,6 +323,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Clearing all cameras.");
                 mCameras.clear();
             }
         };
@@ -342,6 +346,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Replacing camera at location " + location + " with: " + camera);
                 final Camera old = mCameras.set(location, camera);
                 if (mSceneGraph != null) {
                     //mSceneGraph.removeObject(old);
@@ -366,6 +371,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Replacing camera " + oldCamera + " with " + newCamera);
                 mCameras.set(mCameras.indexOf(oldCamera), newCamera);
                 if (mSceneGraph != null) {
                     //mSceneGraph.removeObject(oldCamera);
@@ -427,6 +433,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Replacing child at location " + location + " with " + child);
                 final Object3D old = mChildren.set(location, child);
                 if (mSceneGraph != null) {
                     //mSceneGraph.removeObject(old);
@@ -448,6 +455,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Replacing child " + oldChild + " with " + newChild);
                 mChildren.set(mChildren.indexOf(oldChild), newChild);
                 if (mSceneGraph != null) {
                     //mSceneGraph.removeObject(oldChild);
@@ -469,6 +477,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Adding child: " + child);
                 mChildren.add(child);
                 if (mSceneGraph != null) {
                     //mSceneGraph.addObject(child); //TODO: Uncomment
@@ -488,6 +497,7 @@ public class Scene {
      * @return True if the child was successfully queued for addition.
      */
 	public boolean addChildAt(final Object3D child, final int index) {
+		RajLog.d("AFrameTask - Adding child " + child + " at " + index);
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
@@ -507,6 +517,7 @@ public class Scene {
 	 * @return boolean True if the addition was successfully queued.
 	 */
 	public boolean addChildren(final Collection<Object3D> children) {
+		RajLog.d("AFrameTask - Adding children: " + children);
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
@@ -564,6 +575,7 @@ public class Scene {
 	 * @return True if the light was successfully queued for addition.
 	 */
 	public boolean addLight(final ALight light) {
+		RajLog.d("AFrameTask - Adding light " + light);
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
@@ -679,6 +691,7 @@ public class Scene {
 	 * @return boolean True if the registration was queued successfully.
 	 */
 	public boolean registerAnimation(final Animation anim) {
+		RajLog.d("AFrameTask - Adding animation: " + anim);
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
@@ -764,6 +777,7 @@ public class Scene {
         final AFrameTask task = new AFrameTask() {
             @Override
             protected void doTask() {
+				RajLog.d("AFrameTask - Adding frame callback " + callback);
                 if (callback.callPreFrame()) mPreCallbacks.add(callback);
                 if (callback.callPreDraw()) mPreDrawCallbacks.add(callback);
                 if (callback.callPostFrame()) mPostCallbacks.add(callback);
@@ -827,23 +841,14 @@ public class Scene {
 	 * @return {@code boolean} True if the clear task was queued successfully.
 	 */
 	public boolean setSkybox(int resourceId) throws TextureException {
-	        final AFrameTask task = new AFrameTask() {
-	            @Override
-	            protected void doTask() {
-			for (int i = 0, j = mCameras.size(); i < j; ++i)
-				mCameras.get(i).setFarPlane(1000);
-	            }
-	        };
-		synchronized (mNextSkyboxLock) {
-			mNextSkybox = new Cube(700, true, false);
-			mNextSkybox.setDoubleSided(true);
-			mSkyboxTexture = new Texture("skybox", resourceId);
-			Material material = new Material();
-			material.setColorInfluence(0);
-			material.addTexture(mSkyboxTexture);
-			mNextSkybox.setMaterial(material);
-		}
-        	return internalOfferTask(task);
+		Cube skybox = new Cube(700, true, false);
+		skybox.setDoubleSided(true);
+		Texture texture = new Texture("skybox", resourceId);
+		Material material = new Material();
+		material.setColorInfluence(0);
+		material.addTexture(texture);
+		skybox.setMaterial(material);
+        	return setSkybox(skybox, texture);
 	}
 
 	/**
@@ -858,25 +863,15 @@ public class Scene {
 	 * @throws TextureException
 	 */
 	public boolean setSkybox(int posx, int negx, int posy, int negy, int posz, int negz) throws TextureException {
-	        final AFrameTask task = new AFrameTask() {
-	            @Override
-	            protected void doTask() {
-			for (int i = 0, j = mCameras.size(); i < j; ++i)
-				mCameras.get(i).setFarPlane(1000);
-			}
-		};
-		synchronized (mNextSkyboxLock) {
-			mNextSkybox = new Cube(700, true);
-			int[] resourceIds = new int[] { posx, negx, posy, negy, posz, negz };
-
-			mSkyboxTexture = new CubeMapTexture("skybox", resourceIds);
-			((CubeMapTexture)mSkyboxTexture).isSkyTexture(true);
-			Material mat = new Material();
-			mat.setColorInfluence(0);
-			mat.addTexture(mSkyboxTexture);
-			mNextSkybox.setMaterial(mat);
-		}
-        	return internalOfferTask(task);
+		Cube skybox = new Cube(700, true);
+		int[] resourceIds = new int[] { posx, negx, posy, negy, posz, negz };
+		CubeMapTexture texture = new CubeMapTexture("skybox", resourceIds);
+		texture.isSkyTexture(true);
+		Material mat = new Material();
+		mat.setColorInfluence(0);
+		mat.addTexture(texture);
+		skybox.setMaterial(mat);
+        	return setSkybox(skybox, texture);
 	}
 
     /**
@@ -884,27 +879,40 @@ public class Scene {
      *
      * @param bitmaps {@link Bitmap} array containing the cube map textures.
      */
-    public boolean setSkybox(Bitmap[] bitmaps) {
-	final AFrameTask task = new AFrameTask() {
-	            @Override
-	            protected void doTask() {
-            for (int i = 0, j = mCameras.size(); i < j; ++i)
-                mCameras.get(i).setFarPlane(1000);
-        	}
-        };
+    public boolean setSkybox(Bitmap[] bitmaps) throws TextureException {
         final Cube skybox = new Cube(700, true);
         final CubeMapTexture texture = new CubeMapTexture("bitmap_skybox", bitmaps);
         texture.isSkyTexture(true);
         final Material material = new Material();
         material.setColorInfluence(0);
-        try {
-            material.addTexture(texture);
-        } catch (TextureException e) {
-            RajLog.e(e.getMessage());
-        }
+        material.addTexture(texture);
         skybox.setMaterial(material);
-        synchronized (mNextCameraLock) {
+        return setSkybox(skybox, texture);
+    }
+
+    /**
+     * Sets the provided {@link Cube} as a skybox.
+     *
+     * @param skybox {@link Cube} object defining skybox geometry.
+     * @param texture {@link Texture} the texture added to the skybox.
+     */
+    public boolean setSkybox(final Cube skybox, final ATexture texture) {
+	final AFrameTask task = new AFrameTask() {
+	            @Override
+		protected void doTask() {
+			// ensure all cameras can see the far side of the skybox
+                	float out_radius = (float)skybox.getGeometry().getBoundingSphere().getRadius();
+                	float in_radius = out_radius/(float)Math.sqrt(3);
+                	float median_diagonal = in_radius + out_radius;
+			for (int i = 0, j = mCameras.size(); i < j; ++i)
+				if(mCameras.get(i).getFarPlane() < median_diagonal) {
+					mCameras.get(i).setFarPlane(median_diagonal);
+				}
+			}
+	};
+	synchronized (mNextSkyboxLock) {
             mNextSkybox = skybox;
+            mSkyboxTexture = texture;
         }
         return internalOfferTask(task);
     }
@@ -947,9 +955,9 @@ public class Scene {
 	}
 
 	/**
-	 * Updates the sky box textures with a bitmap array of length 6. 
+	 * Updates the sky box textures with a bitmap array of length 6.
 	 * @param bitmaps {@link Bitmap} array containing the cube map textures.
-         * The sequence of the bitmaps in array should be 
+         * The sequence of the bitmaps in array should be
          * front, right, back, left, up, down, the same as in setSkybox(Bitmap[] bitmaps)
 	 * @throws Exception
 	 */
@@ -1172,12 +1180,6 @@ public class Scene {
 		// Set background color (to Object3D.UNPICKABLE to prevent any conflicts)
 		GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-		// Configure depth testing
-		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-		GLES20.glDepthFunc(GLES20.GL_LESS);
-		GLES20.glDepthMask(true);
-		GLES20.glClearDepthf(1.0f);
-
 		// Clear buffers used for color-picking
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -1312,7 +1314,7 @@ public class Scene {
 	private void updateChildMaterialWithLights(Object3D child) {
 		Material material = child.getMaterial();
 		if(material != null && material.lightingEnabled())
-			material.setLights(mLights);
+			material.setLights(new ArrayList<ALight>(mLights));
 		if(material!= null && mFogParams != null)
 			material.addPlugin(new FogMaterialPlugin(mFogParams));
 
